@@ -2,7 +2,7 @@ import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
-import {uploadData, generateKey, submitTask, getResult} from "@xudean/pado-ao-sdk";
+import {uploadData, generateKey, submitTask, getResult} from "@padolabs/pado-ao-sdk";
 
 function App() {
     const [count, setCount] = useState(0)
@@ -80,7 +80,7 @@ const fucUser = async () => {
     let key = await generateKey();
 
   // submit a task to AO process
-  const taskId = await submitTask("QEdPJmcnmOfyYj7U-MIWm0zRxMRRHB62zq6YF4B-kPg", key.pk, window.arweaveWallet);
+  const taskId = await submitTask("Wknf36cy0H9ksovHBbSTd-mVcpzHH7tMMrgZld2rJF4", key.pk, window.arweaveWallet);
   console.log(`TASKID=${taskId}`);
 
   // get the result (If you want to do a local test, refer to the README to initialize arweave and then pass it to getResult)
