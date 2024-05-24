@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@xudean/pado-ao-sdk": "^0.1.11",
+    "@xudean/pado-ao-sdk": "^0.1.12",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "tslib": "^2.6.2"

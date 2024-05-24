@@ -2,7 +2,7 @@ import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
-import {uploadData} from "@xudean/pado-ao-sdk";
+import {uploadData, generateKey, submitTask, getResult} from "@xudean/pado-ao-sdk";
 
 function App() {
     const [count, setCount] = useState(0)
@@ -19,7 +19,7 @@ function App() {
             </div>
             <h1>Vite + React</h1>
             <div className="card">
-                <button onClick={fuc}>
+                <button onClick={fucUser}>
                     Connect
                 </button>
                 <p>
@@ -69,12 +69,24 @@ const fuc = async () => {
     let dataTag = { "testtagkey": "testtagvalue" };
 
     // price for the data
-    let priceInfo = { price: "100", symbol: "AOCRED" };
+    let priceInfo = { price: "1", symbol: "AOCRED" };
 
     // upload your data
-    debugger
     const dataId = await uploadData(data, dataTag, priceInfo, wallet);
     console.log(`DATAID=${dataId}`);
+}
+
+const fucUser = async () => {
+    let key = await generateKey();
+
+  // submit a task to AO process
+  const taskId = await submitTask("QEdPJmcnmOfyYj7U-MIWm0zRxMRRHB62zq6YF4B-kPg", key.pk, window.arweaveWallet);
+  console.log(`TASKID=${taskId}`);
+
+  // get the result (If you want to do a local test, refer to the README to initialize arweave and then pass it to getResult)
+  const [err, data] = await getResult(taskId, key.sk).then(data => [null, data]).catch(err => [err, null]);
+  console.log(`err=${err}`);
+  console.log(`data=${data}`);
 }
 
 
