@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import {useState} from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
@@ -11,10 +11,10 @@ function App() {
         <>
             <div>
                 <a href="https://vitejs.dev" target="_blank">
-                    <img src={viteLogo} className="logo" alt="Vite logo" />
+                    <img src={viteLogo} className="logo" alt="Vite logo"/>
                 </a>
                 <a href="https://react.dev" target="_blank">
-                    <img src={reactLogo} className="logo react" alt="React logo" />
+                    <img src={reactLogo} className="logo react" alt="React logo"/>
                 </a>
             </div>
             <h1>Vite + React</h1>
@@ -66,10 +66,10 @@ const fuc = async () => {
     let data = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
 
     // tag for the data
-    let dataTag = { "testtagkey": "testtagvalue" };
+    let dataTag = {"testtagkey": "testtagvalue"};
 
     // price for the data
-    let priceInfo = { price: "1", symbol: "AOCRED" };
+    let priceInfo = {price: "1", symbol: "AOCRED"};
 
     // upload your data
     const dataId = await uploadData(data, dataTag, priceInfo, wallet);
@@ -77,16 +77,23 @@ const fuc = async () => {
 }
 
 const fucUser = async () => {
+    await window.arweaveWallet.connect(
+        // request permissions to read the active address
+        [
+            "ACCESS_ADDRESS",
+            "SIGN_TRANSACTION",
+        ]
+    );
     let key = await generateKey();
 
-  // submit a task to AO process
-  const taskId = await submitTask("Wknf36cy0H9ksovHBbSTd-mVcpzHH7tMMrgZld2rJF4", key.pk, window.arweaveWallet);
-  console.log(`TASKID=${taskId}`);
+    // submit a task to AO process
+    const taskId = await submitTask("Wknf36cy0H9ksovHBbSTd-mVcpzHH7tMMrgZld2rJF4", key.pk, window.arweaveWallet);
+    console.log(`TASKID=${taskId}`);
 
-  // get the result (If you want to do a local test, refer to the README to initialize arweave and then pass it to getResult)
-  const [err, data] = await getResult(taskId, key.sk).then(data => [null, data]).catch(err => [err, null]);
-  console.log(`err=${err}`);
-  console.log(`data=${data}`);
+    // get the result (If you want to do a local test, refer to the README to initialize arweave and then pass it to getResult)
+    const [err, data] = await getResult(taskId, key.sk).then(data => [null, data]).catch(err => [err, null]);
+    console.log(`err=${err}`);
+    console.log(`data=${data}`);
 }
 
 
