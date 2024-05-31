@@ -3,7 +3,7 @@ import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 import {uploadData, generateKey, submitTask, getResult} from "@padolabs/pado-ao-sdk";
-
+import { genArweaveAPI } from "arseeding-js";
 function App() {
     const [count, setCount] = useState(0)
 
@@ -77,6 +77,8 @@ const fuc = async () => {
 }
 
 const fucUser = async () => {
+    // const instance = await genArweaveAPI(window.arweaveWallet)
+    //   console.log('instance', instance)
     let key = await generateKey();
 
   // submit a task to AO process
