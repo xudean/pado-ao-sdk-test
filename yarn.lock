@@ -779,10 +779,10 @@
     "@nodelib/fs.scandir" "2.1.5"
     "fastq" "^1.6.0"
 
-"@padolabs/pado-ao-sdk@^0.1.0":
-  "integrity" "sha512-2JFEI33Y5qoX9hPphFYzc45diTXlZniyn2qmhU0TVx6i7VxiCTPLvBFeB1rFpbf/qG5rN66BO6LpNohrUl47lA=="
-  "resolved" "https://registry.npmjs.org/@padolabs/pado-ao-sdk/-/pado-ao-sdk-0.1.0.tgz"
-  "version" "0.1.0"
+"@padolabs/pado-ao-sdk@^0.1.1":
+  "integrity" "sha512-XrSJ24hyVTo2yIL/SQD2KMGSXjH2KXCzYlU5uHSo8H/30A2Seq0w+mCVX57hKTDwAZqAR/Lop7nEu8+rgpECwA=="
+  "resolved" "https://registry.npmjs.org/@padolabs/pado-ao-sdk/-/pado-ao-sdk-0.1.1.tgz"
+  "version" "0.1.1"
   dependencies:
     "@permaweb/aoconnect" "^0.0.51"
     "arweave" "^1.15.0"

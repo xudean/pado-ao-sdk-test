@@ -5,7 +5,7 @@ import Arweave from "arweave";
 import {submitDataToAR} from "@padolabs/pado-ao-sdk/dist/padoarweave.js";
 // import { genArweaveAPI } from "arseeding-js";
 import {getWalletBalance, logTokenTag, printFee, uploadDataByArseeding} from "./script/arseeding.js";
-
+import {Spin} from "antd";
 
 
 function App() {
@@ -20,7 +20,9 @@ function App() {
     const [arweaveBalance, setArweaveBalance] = useState(null)
     const [arseedingNeedFee, setArseedingNeedFee] = useState(0)
     const [downloadLink, setDownloadLink] = useState(null)
-
+    const [padoSdkUploading, setPadoSdkUploading] = useState(false)
+    const [arweaveUploading, setArweeaveUploading] = useState(false)
+    const [arseedingUploading, setArseedingUploading] = useState(false)
     const tag = "arweave,ethereum-ar-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA,0x4fadc7a98f2dc96510e42dd1a74141eeae0c1543"
 
 
@@ -56,7 +58,7 @@ function App() {
         }
         const addressTmp = await window.arweaveWallet.getActiveAddress()
         setAddress(addressTmp)
-        const balance =await getWalletBalance(tag);
+        const balance = await getWalletBalance(tag);
         console.log(balance)
         setArweaveBalance(balance)
         console.log("connect success!")
@@ -83,7 +85,7 @@ function App() {
 
                 // upload your data (If you want to do a local test, refer to the README to initialize arweave and then pass it to uploadData)
                 console.log("upload data")
-                const dataId = await uploadData(data, dataTag, priceInfo, window.arweaveWallet,arweave);
+                const dataId = await uploadData(data, dataTag, priceInfo, window.arweaveWallet, arweave);
                 console.log(`DATAID=${dataId}`);
             };
         }
@@ -118,11 +120,11 @@ function App() {
                 setFileContent3(content);
                 console.log(content.byteLength); // 打印文件内容到控制台
                 console.log(content); // 打印文件内容到控制台
-                const fee = await printFee('ar',content.byteLength)
+                const fee = await printFee('ar', content.byteLength)
                 const decimals = Number(fee.decimals)
                 const finalFee = Number(fee.finalFee)
-                const divide = Math.pow(10,decimals)
-                setArseedingNeedFee(finalFee/divide)
+                const divide = Math.pow(10, decimals)
+                setArseedingNeedFee(finalFee / divide)
                 //todo if you want to save in arweave, need to pay
             };
         }
@@ -132,10 +134,11 @@ function App() {
         // prepare some data
         console.log('arseeding-js upload start')
         const order = await uploadDataByArseeding(fileContent3, tag)
-        console.log('order:',order)
+        console.log('order:', order)
         debugger
-        setDownloadLink('https://arseed.web3infra.dev/'+order.itemId)
+        setDownloadLink('https://arseed.web3infra.dev/' + order.itemId)
     }
+
     function clearFile() {
         fileInputRef.current.value = '';
     }
@@ -172,6 +175,7 @@ function App() {
                        ref={fileInputRef}
                        onChange={handleFileChange}/>
                 <button onClick={clearFile}>Clear file</button>
+                {padoSdkUploading&&<Spin tip="Loading" size="small"></Spin>}
             </div>
             <hr/>
             <h2>Upload File by Arweave</h2>
@@ -181,6 +185,7 @@ function App() {
                        ref={fileInputRef2}
                        onChange={handleFileChangeArweave}/>
                 <button onClick={clearFileArweave}>Clear file</button>
+                {arweaveUploading&&<Spin tip="Loading" size="small"></Spin>}
             </div>
             <hr/>
             <h2>Upload File by Arseeding-js</h2>
@@ -190,6 +195,7 @@ function App() {
                        ref={fileInputRef3}
                        onChange={handleFileChangeArseeding}/>
                 <button onClick={uploadFileByArseeding}>Upload file</button>
+                {arseedingUploading &&<Spin tip="Loading" size="small"></Spin>}
                 <button onClick={clearFileArSeeding}>Clear file</button>
             </div>
             <div>
