@@ -123,6 +123,7 @@ function App() {
                 const finalFee = Number(fee.finalFee)
                 const divide = Math.pow(10,decimals)
                 setArseedingNeedFee(finalFee/divide)
+                //todo if you want to save in arweave, need to pay
             };
         }
     };
