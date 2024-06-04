@@ -2,7 +2,7 @@
   "name": "test2",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
+  "type": "commonjs",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -13,11 +13,13 @@
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
     "@esbuild-plugins/node-modules-polyfill": "^0.2.2",
     "@padolabs/pado-ao-sdk": "^0.1.0",
-    "arseeding-js": "^0.0.31",
     "antd": "^5.17.4",
+    "arseeding-js": "^0.0.31",
     "arweave": "^1.15.1",
+    "assert": "^2.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "stream-browserify": "^3.0.0",
     "tslib": "^2.6.2"
   },
   "devDependencies": {
