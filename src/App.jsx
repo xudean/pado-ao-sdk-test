@@ -65,52 +65,67 @@ function App() {
     }
 
     const handleFileChange = async (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.readAsArrayBuffer(file); // 读取文件为文本
-            reader.onload = async (e) => {
-                const content = e.target.result;
-                setFileContent(content);
-                console.log(content.byteLength); // 打印文件内容到控制台
-                console.log(content); // 打印文件内容到控制台
-                // prepare some data
-                let data = new Uint8Array(content);
+        setPadoSdkUploading(true)
+        try {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.readAsArrayBuffer(file); // 读取文件为文本
+                reader.onload = async (e) => {
+                    const content = e.target.result;
+                    setFileContent(content);
+                    console.log(content.byteLength); // 打印文件内容到控制台
+                    console.log(content); // 打印文件内容到控制台
+                    // prepare some data
+                    let data = new Uint8Array(content);
 
-                // tag for the data
-                let dataTag = {"testtagkey": "testtagvalue"};
+                    // tag for the data
+                    let dataTag = {"testtagkey": "testtagvalue"};
 
-                // price for the data
-                let priceInfo = {price: "1", symbol: "AOCRED"};
+                    // price for the data
+                    let priceInfo = {price: "1", symbol: "AOCRED"};
 
-                // upload your data (If you want to do a local test, refer to the README to initialize arweave and then pass it to uploadData)
-                console.log("upload data")
-                const dataId = await uploadData(data, dataTag, priceInfo, window.arweaveWallet, arweave);
-                console.log(`DATAID=${dataId}`);
-            };
+                    // upload your data (If you want to do a local test, refer to the README to initialize arweave and then pass it to uploadData)
+                    console.log("upload data")
+                    const dataId = await uploadData(data, dataTag, priceInfo, window.arweaveWallet, arweave);
+                    console.log(`DATAID=${dataId}`);
+                };
+            }
+        } catch (e) {
+            console.log(e)
+        } finally {
+            setPadoSdkUploading(false)
         }
     };
     const handleFileChangeArweave = async (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.readAsArrayBuffer(file); // 读取文件为文本
-            reader.onload = async (e) => {
-                const content = e.target.result;
-                setFileContent2(content);
-                console.log(content.byteLength); // 打印文件内容到控制台
-                console.log(content); // 打印文件内容到控制台
-                // prepare some data
-                let data = new Uint8Array(content);
-                console.log('arweave upload start')
-                const transactionId = await submitDataToAR(arweave, data, window.arweaveWallet);
-                console.log(transactionId)
+        setArweeaveUploading(true)
+        try {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.readAsArrayBuffer(file); // 读取文件为文本
+                reader.onload = async (e) => {
+                    const content = e.target.result;
+                    setFileContent2(content);
+                    console.log(content.byteLength); // 打印文件内容到控制台
+                    console.log(content); // 打印文件内容到控制台
+                    // prepare some data
+                    let data = new Uint8Array(content);
+                    console.log('arweave upload start')
+                    const transactionId = await submitDataToAR(arweave, data, window.arweaveWallet);
+                    console.log(transactionId)
 
-            };
+                };
+            }
+        } catch (e) {
+            console.log(e)
+        } finally {
+            setArweeaveUploading(false)
         }
     };
 
     const handleFileChangeArseeding = async (event) => {
+
         const file = event.target.files[0];
         if (file) {
             const reader = new FileReader();
@@ -128,15 +143,23 @@ function App() {
                 //todo if you want to save in arweave, need to pay
             };
         }
+
     };
 
     const uploadFileByArseeding = async () => {
-        // prepare some data
-        console.log('arseeding-js upload start')
-        const order = await uploadDataByArseeding(fileContent3, tag)
-        console.log('order:', order)
-        debugger
-        setDownloadLink('https://arseed.web3infra.dev/' + order.itemId)
+        setArseedingUploading(true)
+        try {
+            // prepare some data
+            console.log('arseeding-js upload start')
+            const order = await uploadDataByArseeding(fileContent3, tag)
+            console.log('order:', order)
+            debugger
+            setDownloadLink('https://arseed.web3infra.dev/' + order.itemId)
+        } catch (e) {
+            console.log(e)
+        } finally {
+            setArseedingUploading(false)
+        }
     }
 
     function clearFile() {
@@ -149,6 +172,7 @@ function App() {
 
     function clearFileArSeeding() {
         fileInputRef3.current.value = '';
+        setDownloadLink(null)
     }
 
     return (
@@ -175,7 +199,7 @@ function App() {
                        ref={fileInputRef}
                        onChange={handleFileChange}/>
                 <button onClick={clearFile}>Clear file</button>
-                {padoSdkUploading&&<Spin tip="Loading" size="small"></Spin>}
+                {padoSdkUploading && <Spin tip="Loading" size="small"></Spin>}
             </div>
             <hr/>
             <h2>Upload File by Arweave</h2>
@@ -185,7 +209,7 @@ function App() {
                        ref={fileInputRef2}
                        onChange={handleFileChangeArweave}/>
                 <button onClick={clearFileArweave}>Clear file</button>
-                {arweaveUploading&&<Spin tip="Loading" size="small"></Spin>}
+                {arweaveUploading && <Spin tip="Loading" size="small"></Spin>}
             </div>
             <hr/>
             <h2>Upload File by Arseeding-js</h2>
@@ -195,7 +219,7 @@ function App() {
                        ref={fileInputRef3}
                        onChange={handleFileChangeArseeding}/>
                 <button onClick={uploadFileByArseeding}>Upload file</button>
-                {arseedingUploading &&<Spin tip="Loading" size="small"></Spin>}
+                {arseedingUploading && <Spin tip="Loading" size="small"></Spin>}
                 <button onClick={clearFileArSeeding}>Clear file</button>
             </div>
             <div>
