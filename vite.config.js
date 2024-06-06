@@ -50,7 +50,8 @@ export default defineConfig((mode) => {
                     NodeModulesPolyfillPlugin()
                 ]
             },
-            exclude: ['@xudean/pado-ao-sdk'],
+            include: ['react', 'react-dom'],
+            force: true,
         },
         plugins: [
             react(),
@@ -58,7 +59,8 @@ export default defineConfig((mode) => {
         resolve: {
             alias: {
                 stream: 'src/script/stream-shim.js'
-            }
+            },
+            preserveSymlinks: true,
         },
     }
 })
