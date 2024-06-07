@@ -59,10 +59,19 @@ function App() {
         }
     }, [storageType])
 
-
+    //for development,need arlocal
     const ARConfig = {
-        host: '127.0.0.1', port: 1984, protocol: 'http'
+        host: '127.0.0.1',
+        port: 1984,
+        protocol: 'http'
     };
+    //for production
+    // export const ARConfig = {
+    //     host: 'arweave.net',
+    //     port: 443,
+    //     protocol: 'https'
+    // };
+
     const arweave = Arweave.init(ARConfig)
 
     const connectWallet = async () => {
@@ -77,6 +86,7 @@ function App() {
             setCliecked(false);
         }
         const addressTmp = await window.arweaveWallet.getActiveAddress()
+
         setAddress(addressTmp)
         const balance = await getWalletBalance(tag);
         console.log(balance)
@@ -221,7 +231,7 @@ function App() {
                 )
                 }
                 {
-                    everpayBalance&&(<div>balance: {everpayBalance}</div>)
+                    everpayBalance && (<div>balance: {everpayBalance}</div>)
                 }
 
                 <div className="card">
