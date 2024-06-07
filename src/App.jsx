@@ -244,7 +244,7 @@ function App() {
                 {dataId && <div>DATAID: <a style={{color: 'red'}}>{dataId}</a></div>}
             </div>
             <div className="card">
-                <h2>Submit Task(Data Provider)</h2>
+                <h2>Submit Task(Data User)</h2>
                 <input onChange={(e) => userDataIdChange(e.target.value)}/>
                 {taskMsg && <Spin size="small" tip={taskMsg}>{taskMsg}</Spin>}
                 <button onClick={submitTaskAndGetResult}>submitTaskAndGetResult</button>
