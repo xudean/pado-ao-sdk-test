@@ -5,9 +5,11 @@ import Arweave from "arweave";
 // import {submitDataToAR} from "@xudean/pado-ao-sdk/dist/padoarweave.js";
 // import { genArweaveAPI } from "arseeding-js";
 import {getWalletBalance, logTokenTag, printFee, uploadDataByArseeding} from "./script/arseeding.js";
-import {Select, Spin} from "antd";
+import {Input, Select, Spin} from "antd";
 // import {Everpay} from 'everpay'
 import Everpay from 'everpay'
+import {getDataById} from "@xudean/pado-ao-sdk/src/processes/dataregistry";
+import {generateKey, getResult, submitTask} from "../../../padolabs/ao/pado-ao-sdk/src/index";
 
 
 function App() {
@@ -27,10 +29,14 @@ function App() {
     const [arweaveUploading, setArweeaveUploading] = useState(false)
     const [arseedingUploading, setArseedingUploading] = useState(false)
     const [arseedingSymbols, setArseedingSymbols] = useState([])
+    const [dataId, setDataId] = useState(null)
+    const [userDataId, setUserDataId] = useState(null)
+    const [isUploading, setIsUploading] = useState(false)
     const [selectedSymbol, setSelectedSymbol] = useState()
+    const [taskMsg, setTaskMsg] = useState(null)
     const tag = "arweave,ethereum-ar-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA,0x4fadc7a98f2dc96510e42dd1a74141eeae0c1543"
     const storageTypeOps = [{value: 'arweave', label: 'arweave'}, {value: 'arseeding', label: 'arseeding'},]
-
+    const [everpayBalance, setEverpayBalance] = useState(null)
 
     const printTokenTag = async () => {
         const everpay = await new Everpay()
@@ -39,9 +45,9 @@ function App() {
             const symbols = info.tokenList.map(token => {
                 const rsp = {}
                 rsp['value'] = token.tag;
-                rsp['label'] = token.symbol+' | '+token.chainType;
+                rsp['label'] = token.symbol + ' | ' + token.chainType;
                 return rsp;
-            })
+            }).sort((a, b) => a.label.localeCompare(b.label));
             console.log(symbols)
             setArseedingSymbols(symbols)
         })
@@ -79,7 +85,8 @@ function App() {
     }
 
     const handleFileChange = async (event) => {
-        setPadoSdkUploading(true)
+        debugger
+        await setIsUploading(true)
         try {
             const file = event.target.files[0];
             if (file) {
@@ -97,9 +104,6 @@ function App() {
                     // price for the data
                     let priceInfo = {price: "1", symbol: "AOCRED"};
 
-                    // upload your data (If you want to do a local test, refer to the README to initialize arweave and then pass it to uploadData)
-                    const tag = "arweave,ethereum-ar-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA,0x4fadc7a98f2dc96510e42dd1a74141eeae0c1543"
-                    debugger
                     const extParam = {
                         uploadParam: {
                             storageType: storageType, symbolTag: selectedSymbol
@@ -107,90 +111,20 @@ function App() {
                     }
                     const dataId = await uploadData(data, dataTag, priceInfo, window.arweaveWallet, arweave, extParam);
                     console.log(`DATAID=${dataId}`);
+                    setDataId(dataId)
+                    await setIsUploading(false)
                 };
             }
         } catch (e) {
             console.log(e)
         } finally {
-            setPadoSdkUploading(false)
-        }
-    };
-    const handleFileChangeArweave = async (event) => {
-        setArweeaveUploading(true)
-        try {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.readAsArrayBuffer(file); // 读取文件为文本
-                reader.onload = async (e) => {
-                    const content = e.target.result;
-                    setFileContent2(content);
-                    console.log(content.byteLength); // 打印文件内容到控制台
-                    console.log(content); // 打印文件内容到控制台
-                    // prepare some data
-                    let data = new Uint8Array(content);
-                    console.log('arweave upload start')
-                    const transactionId = await submitDataToAR(arweave, data, window.arweaveWallet);
-                    console.log(transactionId)
-
-                };
-            }
-        } catch (e) {
-            console.log(e)
-        } finally {
-            setArweeaveUploading(false)
+            await setPadoSdkUploading(false)
         }
     };
 
-    const handleFileChangeArseeding = async (event) => {
-
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.readAsArrayBuffer(file); // 读取文件为文本
-            reader.onload = async (e) => {
-                const content = e.target.result;
-                setFileContent3(content);
-                console.log(content.byteLength); // 打印文件内容到控制台
-                console.log(content); // 打印文件内容到控制台
-                const fee = await printFee('ar', content.byteLength)
-                const decimals = Number(fee.decimals)
-                const finalFee = Number(fee.finalFee)
-                const divide = Math.pow(10, decimals)
-                setArseedingNeedFee(finalFee / divide)
-                //todo if you want to save in arweave, need to pay
-            };
-        }
-
-    };
-
-    const uploadFileByArseeding = async () => {
-        setArseedingUploading(true)
-        try {
-            // prepare some data
-            console.log('arseeding-js upload start')
-            const order = await uploadDataByArseeding(fileContent3, tag)
-            console.log('order:', order)
-            debugger
-            setDownloadLink('https://arseed.web3infra.dev/' + order.itemId)
-        } catch (e) {
-            console.log(e)
-        } finally {
-            setArseedingUploading(false)
-        }
-    }
 
     function clearFile() {
         fileInputRef.current.value = '';
-    }
-
-    function clearFileArweave() {
-        fileInputRef2.current.value = '';
-    }
-
-    function clearFileArSeeding() {
-        fileInputRef3.current.value = '';
-        setDownloadLink(null)
     }
 
     function handleStorageTypeChnage(value) {
@@ -198,10 +132,61 @@ function App() {
         setStorageType(value)
     }
 
-    function handleSymbolChange(value){
-        console.log('chose symbol',value)
+    async function handleSymbolChange(value) {
+        console.log('chose symbol', value)
         setSelectedSymbol(value)
+        const balance = await getWalletBalance(value)
+        console.log(balance)
+        setEverpayBalance(balance)
     }
+
+
+    async function submitTaskAndGetResult() {
+        setTaskMsg('generate key')
+        let key = await generateKey();
+        // const dataInfo = await getDataById(userDataId)
+        // console.log('dataInfo:',JSON.parse(JSON.parse(dataInfo).dataTag))
+        setTaskMsg('submit task')
+        const taskId = await submitTask(userDataId, key.pk, window.arweaveWallet);
+        console.log(`TASKID=${taskId}`);
+        setTaskMsg('get task result')
+        const [err, data] = await getResult(taskId, key.sk).then(data => {
+            setTaskMsg(null)
+            return [null, data]
+        }).catch(err => {
+            setTaskMsg(null)
+            alert(err)
+            return [err, null]
+        });
+        console.log(`err=${err}`);
+        console.log(`data=${data}`);
+        //for test
+        if (data) {
+            downloadArrayBufferAsFile(data, 'raw_data_file')
+        }
+    }
+
+    function downloadArrayBufferAsFile(data, fileName) {
+        const blob = new Blob([data], {type: 'application/octet-stream'});
+
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = fileName;
+
+        document.body.appendChild(a);
+        a.click();
+
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+    }
+
+    async function userDataIdChange(value) {
+        console.log('dataId:', value)
+        setUserDataId(value)
+    }
+
 
     return (<>
         <h2>Connect Wallet</h2>
@@ -215,54 +200,48 @@ function App() {
             {arweaveBalance && <a>AR:{arweaveBalance}</a>}
         </div>
         <hr/>
-        <h2>Upload File by PADO-AO-SDK</h2>
-        <div>
-            storageType:<Select style={{width: '200px'}} options={storageTypeOps} onChange={handleStorageTypeChnage}
-                                defaultValue={storageType}></Select>
-        </div>
-        {storageType === "arseeding" &&(
-            <div>
-                symbols:<Select style={{width: '200px'}} options={arseedingSymbols} defaultValue={arseedingSymbols[0]} onChange={handleSymbolChange}></Select>
-            </div>
-        )
-        }
+        <div style={{
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'space-between'
+        }}>
+            <div className="card">
+                <h2>Upload File(Data Provider)</h2>
+                <div>
+                    storageType:<Select style={{width: '200px'}} options={storageTypeOps}
+                                        onChange={handleStorageTypeChnage}
+                                        defaultValue={storageType}></Select>
+                </div>
+                {storageType === "arseeding" && (
+                    <div>
+                        symbols:<Select style={{width: '200px'}} options={arseedingSymbols}
+                                        defaultValue={arseedingSymbols[0]} onChange={handleSymbolChange}></Select>
+                    </div>
 
-        <div className="card">
-            <input type="file"
-                   name="myFile"
-                   ref={fileInputRef}
-                   onChange={handleFileChange}/>
-            <button onClick={clearFile}>Clear file</button>
-            {padoSdkUploading && <Spin tip="Loading" size="small"></Spin>}
+                )
+                }
+                {
+                    everpayBalance&&(<div>balance: {everpayBalance}</div>)
+                }
+
+                <div className="card">
+                    <input type="file"
+                           name="myFile"
+                           ref={fileInputRef}
+                           onChange={handleFileChange}/>
+                    <button onClick={clearFile}>Clear file</button>
+                </div>
+                {isUploading && <Spin tip={'Uploading...'} size="small">Uploading</Spin>}
+                {dataId && <div>DATAID: <a style={{color: 'red'}}>{dataId}</a></div>}
+            </div>
+            <div className="card">
+                <h2>Submit Task(Data Provider)</h2>
+                <input onChange={(e) => userDataIdChange(e.target.value)}/>
+                {taskMsg && <Spin size="small" tip={taskMsg}>{taskMsg}</Spin>}
+                <button onClick={submitTaskAndGetResult}>submitTaskAndGetResult</button>
+            </div>
         </div>
         <hr/>
-        {/*<h2>Upload File by Arweave</h2>*/}
-        {/*<div className="card">*/}
-        {/*    <input type="file"*/}
-        {/*           name="myFile2"*/}
-        {/*           ref={fileInputRef2}*/}
-        {/*           onChange={handleFileChangeArweave}/>*/}
-        {/*    <button onClick={clearFileArweave}>Clear file</button>*/}
-        {/*    {arweaveUploading && <Spin tip="Loading" size="small"></Spin>}*/}
-        {/*</div>*/}
-        {/*<hr/>*/}
-        {/*<h2>Upload File by Arseeding-js</h2>*/}
-        {/*<div className="card">*/}
-        {/*    <input type="file"*/}
-        {/*           name="myFile3"*/}
-        {/*           ref={fileInputRef3}*/}
-        {/*           onChange={handleFileChangeArseeding}/>*/}
-        {/*    <button onClick={uploadFileByArseeding}>Upload file</button>*/}
-        {/*    {arseedingUploading && <Spin tip="Loading" size="small"></Spin>}*/}
-        {/*    <button onClick={clearFileArSeeding}>Clear file</button>*/}
-        {/*</div>*/}
-        {/*<div>*/}
-        {/*    <a>need fee:{arseedingNeedFee} ar</a>*/}
-        {/*</div>*/}
-        {/*<div>*/}
-        {/*    {downloadLink && <a href={downloadLink}>download file</a>}*/}
-        {/*</div>*/}
-        {/*<hr/>*/}
     </>)
 }
 
