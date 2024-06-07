@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useRef, useState} from 'react'
 import './App.css'
-import {uploadData} from "@xudean/pado-ao-sdk/";
+import {generateKey, getResult, submitTask, uploadData} from "@xudean/pado-ao-sdk/";
 import Arweave from "arweave";
 // import {submitDataToAR} from "@xudean/pado-ao-sdk/dist/padoarweave.js";
 // import { genArweaveAPI } from "arseeding-js";
@@ -8,8 +8,8 @@ import {getWalletBalance, logTokenTag, printFee, uploadDataByArseeding} from "./
 import {Input, Select, Spin} from "antd";
 // import {Everpay} from 'everpay'
 import Everpay from 'everpay'
-import {getDataById} from "@xudean/pado-ao-sdk/src/processes/dataregistry";
-import {generateKey, getResult, submitTask} from "../../../padolabs/ao/pado-ao-sdk/src/index";
+
+//import {generateKey, getResult, submitTask} from "../../../padolabs/ao/pado-ao-sdk/src/index";
 
 
 function App() {
@@ -154,7 +154,6 @@ function App() {
     async function submitTaskAndGetResult() {
         setTaskMsg('generate key')
         let key = await generateKey();
-        // const dataInfo = await getDataById(userDataId)
         // console.log('dataInfo:',JSON.parse(JSON.parse(dataInfo).dataTag))
         setTaskMsg('submit task')
         const taskId = await submitTask(userDataId, key.pk, window.arweaveWallet);
