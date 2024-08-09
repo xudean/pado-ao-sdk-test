@@ -147,7 +147,7 @@ function App() {
         }
         const data = new Uint8Array(fileContent);
         // tag for the data
-        let dataTag = "abc";
+        let dataTag = {'name':'test'};
 
         // price for the data
         let priceInfo = {
@@ -168,42 +168,10 @@ function App() {
     }
 
     function getWallet() {
-        let wallet;
-        let storageWallet;
-        let walletType;
-        let storageWalletType;
         if (chainName === 'ao') {
-            wallet = window.arweaveWallet;
-            walletType = 'arweave'
+            return  window.arweaveWallet;
         } else {
-            wallet = window.ethereum;
-            walletType = 'metamask'
-        }
-
-        if (storageType === StorageType.ARWEAVE || storageType === StorageType.ARSEEDING) {
-            storageWallet = window.arweaveWallet;
-            storageWalletType = 'arweave';
-        } else {
-            throw Error('not support storage type')
-        }
-
-        if (chainName !== 'ao' && storageType === StorageType.ARSEEDING) {
-            walletType = 'metamask';
-            wallet = window.ethereum;
-            storageWallet = window.ethereum;
-            storageWalletType = 'metamask';
-        }
-        storageWallet = window.ethereum;
-        storageWalletType = 'metamask';
-        return {
-            wallet: {
-                wallet: wallet,
-                walletType: walletType
-            },
-            storageWallet: {
-                wallet: storageWallet,
-                walletType: storageWalletType
-            }
+            return  window.ethereum;
         }
     }
 
