@@ -11,6 +11,7 @@ import {PadoNetworkContractClient, StorageType} from '@padolabs/pado-ao-sdk'
 // import {Everpay} from 'everpay'
 import Everpay from 'everpay'
 import {ethers} from "ethers";
+import {arseedingBase64ToHexStr, arseedingHexStrToBase64} from "./script/util";
 
 //import {generateKey, getResult, submitTask} from "../../../padolabs/ao/pado-ao-sdk/src/index";
 
@@ -39,6 +40,7 @@ function App() {
     const [isUploading, setIsUploading] = useState(false)
     const [selectedSymbol, setSelectedSymbol] = useState()
     const [taskMsg, setTaskMsg] = useState(null)
+    const [taskId, setTaskId] = useState(null)
     const tag = "arweave,ethereum-ar-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA,0x4fadc7a98f2dc96510e42dd1a74141eeae0c1543"
     const storageTypeOps = [{value: 'arweave', label: 'arweave'}, {value: 'arseeding', label: 'arseeding'},]
     const supportChains = [{value: 'holesky', label: 'holesky'}, {value: 'ao', label: 'ao'}, {
@@ -46,6 +48,10 @@ function App() {
         label: 'ethereum'
     }]
     const [everpayBalance, setEverpayBalance] = useState(null)
+
+    // const base64Data = arseedingHexStrToBase64('0x4f6f55516873635a3231716a783452746166687277624436376b486d37727273594e393850494847375941')
+    // console.log('arseedingHexStrToBase64',base64Data)
+    // console.log('arseedingBase64ToHexStr',arseedingBase64ToHexStr(base64Data))
 
     const printTokenTag = async () => {
         const everpay = await new Everpay()
@@ -87,7 +93,7 @@ function App() {
         setCliecked(true)
         try {
             await window.arweaveWallet.connect(// request permissions to read the active address
-                ["ACCESS_ADDRESS", "SIGN_TRANSACTION",]);
+                ["ACCESS_ADDRESS", "SIGN_TRANSACTION", "ACCESS_PUBLIC_KEY"]);
         } catch (e) {
             console.log(e)
             setCliecked(false)
@@ -104,10 +110,11 @@ function App() {
     }
 
     const connectMetamask = async () => {
-        const provider = new ethers.BrowserProvider(window.ethereum)
+        const provider = new ethers.providers.Web3Provider(window.ethereum)
         await provider.send("eth_requestAccounts", []);
         const signer = await provider.getSigner()
         const address = await signer.getAddress();
+        console.log(window.ethereum.selectedAddress)
         setMetamaskAddress(address);
         console.log(address)
     }
@@ -140,16 +147,17 @@ function App() {
         }
         const data = new Uint8Array(fileContent);
         // tag for the data
-        let dataTag = {"testtagkey": "testtagvalue"};
+        let dataTag = "abc";
 
         // price for the data
-        let priceInfo = {price: "1", symbol: "AOCRED"};
-        debugger
+        let priceInfo = {
+            price: 1_000_000_000_000,
+            symbol: "ETH"
+        };
+
         //chainName will provided by caller
-        const wallets = {
-            wallet: window.ethereum,
-            storageWallet: window.arweaveWallet
-        }
+        const wallets = getWallet()
+        debugger
         const padoNetworkClient = new PadoNetworkContractClient(chainName, storageType, wallets);
 
         const dataId = await padoNetworkClient.uploadData(data, dataTag, priceInfo);
@@ -157,6 +165,46 @@ function App() {
         // upload your data (If you want to do a local test, refer to the README to initialize arweave and then pass it to uploadData)
         console.log(`DATAID=${dataId}`);
         setDataId(dataId)
+    }
+
+    function getWallet() {
+        let wallet;
+        let storageWallet;
+        let walletType;
+        let storageWalletType;
+        if (chainName === 'ao') {
+            wallet = window.arweaveWallet;
+            walletType = 'arweave'
+        } else {
+            wallet = window.ethereum;
+            walletType = 'metamask'
+        }
+
+        if (storageType === StorageType.ARWEAVE || storageType === StorageType.ARSEEDING) {
+            storageWallet = window.arweaveWallet;
+            storageWalletType = 'arweave';
+        } else {
+            throw Error('not support storage type')
+        }
+
+        if (chainName !== 'ao' && storageType === StorageType.ARSEEDING) {
+            walletType = 'metamask';
+            wallet = window.ethereum;
+            storageWallet = window.ethereum;
+            storageWalletType = 'metamask';
+        }
+        storageWallet = window.ethereum;
+        storageWalletType = 'metamask';
+        return {
+            wallet: {
+                wallet: wallet,
+                walletType: walletType
+            },
+            storageWallet: {
+                wallet: storageWallet,
+                walletType: storageWalletType
+            }
+        }
     }
 
 
@@ -174,6 +222,7 @@ function App() {
         setChainName(value)
     }
 
+
     async function handleSymbolChange(value) {
         console.log('chose symbol', value)
         setSelectedSymbol(value)
@@ -184,13 +233,27 @@ function App() {
 
 
     async function submitTaskAndGetResult() {
-        const wallets = {
-            wallet: window.ethereum,
-            storageWallet: window.arweaveWallet
-        }
+        const wallets = getWallet()
+        debugger
         const padoNetworkClient = new PadoNetworkContractClient(chainName, storageType, wallets);
-        const taskId = await padoNetworkClient.submitTask('',userDataId)
+        const taskId = await padoNetworkClient.submitTask(0, userDataId)
+        console.log(`taskId:${taskId}`)
+        const interval = setInterval(async () => {
+            const data = await padoNetworkClient.getTaskResult(taskId);
+            console.log(`data:${data}`)
+            //for test
+            if (data) {
+                downloadArrayBufferAsFile(data, 'raw_data_file')
+                clearInterval(interval)
+            }
+        }, 10000)
+    }
+
+    async function getTaskResult(){
+        const wallets = getWallet()
+        const padoNetworkClient = new PadoNetworkContractClient(chainName, storageType, wallets);
         const data = await padoNetworkClient.getTaskResult(taskId);
+        debugger
         //for test
         if (data) {
             downloadArrayBufferAsFile(data, 'raw_data_file')
@@ -216,6 +279,12 @@ function App() {
     async function userDataIdChange(value) {
         console.log('dataId:', value)
         setUserDataId(value)
+    }
+
+    async function taskIdChange(value){
+        debugger
+        console.log('taskId:', value)
+        setTaskId(value)
     }
 
 
@@ -292,6 +361,7 @@ function App() {
             </div>
         </div>
         <hr/>
+
     </>)
 }
 
