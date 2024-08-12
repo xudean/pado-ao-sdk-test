@@ -1,12 +1,12 @@
 import {useCallback, useEffect, useRef, useState} from 'react'
 import './App.css'
-import {generateKey, getResult, submitTask, uploadData} from "@padolabs/pado-ao-sdk/";
+import {generateKey, getResult, submitTask, uploadData} from "@xudean/pado-ao-sdk/";
 import Arweave from "arweave";
 // import {submitDataToAR} from "@xudean/pado-ao-sdk/dist/padoarweave.js";
 // import { genArweaveAPI } from "arseeding-js";
 import {getWalletBalance, logTokenTag, printFee, uploadDataByArseeding} from "./script/arseeding.js";
 import {Input, Select, Spin} from "antd";
-import {PadoNetworkContractClient, StorageType} from '@padolabs/pado-ao-sdk'
+import {PadoNetworkContractClient, StorageType} from '@xudean/pado-ao-sdk'
 
 // import {Everpay} from 'everpay'
 import Everpay from 'everpay'
