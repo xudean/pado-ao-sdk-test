@@ -214,30 +214,19 @@ function App() {
 
     async function submitTaskAndGetResult() {
         const wallets = getWallet()
-        debugger
         const padoNetworkClient = new PadoNetworkContractClient(chainName, storageType, wallets);
         const taskId = await padoNetworkClient.submitTask(0, userDataId)
-        console.log(`taskId:${taskId}`)
-        const interval = setInterval(async () => {
-            const data = await padoNetworkClient.getTaskResult(taskId);
-            console.log(`data:${data}`)
-            //for test
-            if (data) {
-                downloadArrayBufferAsFile(data, 'raw_data_file')
-                clearInterval(interval)
-            }
-        }, 10000)
-    }
-
-    async function getTaskResult() {
-        const wallets = getWallet()
-        const padoNetworkClient = new PadoNetworkContractClient(chainName, storageType, wallets);
-        const data = await padoNetworkClient.getTaskResult(taskId);
+        console.log(`taskId:${taskId}`);
         debugger
+        const data = await padoNetworkClient.getTaskResult(taskId,200000);
+        console.log(`data:${data}`)
         //for test
         if (data) {
             downloadArrayBufferAsFile(data, 'raw_data_file')
         }
+        // const interval = setInterval(async () => {
+        //
+        // }, 10000)
     }
 
     function downloadArrayBufferAsFile(data, fileName) {
