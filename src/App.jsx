@@ -21,8 +21,8 @@ function App() {
     const [address, setAddress] = useState()
     const [metamaskAddress, setMetamaskAddress] = useState()
     const [fileContent, setFileContent] = useState('');
-    const [storageType, setStorageType] = useState('arweave');
-    const [chainName, setChainName] = useState('holesky');
+    const [storageType, setStorageType] = useState();
+    const [chainName, setChainName] = useState();
     const [fileContent2, setFileContent2] = useState('');
     const [fileContent3, setFileContent3] = useState('');
     const fileInputRef = useRef(null);
@@ -42,11 +42,14 @@ function App() {
     const [taskMsg, setTaskMsg] = useState(null)
     const [taskId, setTaskId] = useState(null)
     const tag = "arweave,ethereum-ar-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA,0x4fadc7a98f2dc96510e42dd1a74141eeae0c1543"
-    const storageTypeOps = [{value: 'arweave', label: 'arweave'}, {value: 'arseeding', label: 'arseeding'},]
-    const supportChains = [{value: 'holesky', label: 'holesky'}, {value: 'ao', label: 'ao'}, {
-        value: 'ethereum',
-        label: 'ethereum'
-    }]
+
+    const [storageTypeOps, setStorageTypeOps] = useState();
+    const supportChains = [
+        {value: 'holesky', label: 'holesky'},
+        {value: 'ao', label: 'ao'}, {
+            value: 'ethereum',
+            label: 'ethereum'
+        }]
     const [everpayBalance, setEverpayBalance] = useState(null)
 
     // const base64Data = arseedingHexStrToBase64('0x4f6f55516873635a3231716a783452746166687277624436376b486d37727273594e393850494847375941')
@@ -147,7 +150,7 @@ function App() {
         }
         const data = new Uint8Array(fileContent);
         // tag for the data
-        let dataTag = {'name':'test'};
+        let dataTag = {'name': 'test'};
 
         // price for the data
         let priceInfo = {
@@ -169,9 +172,9 @@ function App() {
 
     function getWallet() {
         if (chainName === 'ao') {
-            return  window.arweaveWallet;
+            return window.arweaveWallet;
         } else {
-            return  window.ethereum;
+            return window.ethereum;
         }
     }
 
@@ -187,6 +190,15 @@ function App() {
 
     function handleChainNameChnage(value) {
         console.log('choose chain:', value)
+        if (value === 'ao') {
+            const storageTypeOpsTmp = [{value: 'arweave', label: 'arweave'}]
+            setStorageTypeOps(storageTypeOpsTmp);
+            setStorageType()
+        } else {
+            const storageTypeOpsTmp = [{value: 'arseeding', label: 'arseeding'}]
+            setStorageTypeOps(storageTypeOpsTmp);
+            setStorageType()
+        }
         setChainName(value)
     }
 
@@ -217,7 +229,7 @@ function App() {
         }, 10000)
     }
 
-    async function getTaskResult(){
+    async function getTaskResult() {
         const wallets = getWallet()
         const padoNetworkClient = new PadoNetworkContractClient(chainName, storageType, wallets);
         const data = await padoNetworkClient.getTaskResult(taskId);
@@ -249,7 +261,7 @@ function App() {
         setUserDataId(value)
     }
 
-    async function taskIdChange(value){
+    async function taskIdChange(value) {
         debugger
         console.log('taskId:', value)
         setTaskId(value)
@@ -257,36 +269,17 @@ function App() {
 
 
     return (<>
-        <h2>Connect Wallet</h2>
-        <div className="card">
-            <button disabled={cliecked} onClick={connectWallet}>
-                Connect ArConnect
-            </button>
-            <br/>
-            {address && <a>{address}</a>}
-            <br/>
-            {arweaveBalance && <a>AR:{arweaveBalance}</a>}
-        </div>
-        <div className="card2">
-            <button disabled={cliecked} onClick={connectMetamask}>
-                Connect Metamask
-            </button>
-            <br/>
-            {metamaskAddress && <a>{metamaskAddress}</a>}
-            {/*<br/>*/}
-            {/*{arweaveBalance && <a>AR:{arweaveBalance}</a>}*/}
-        </div>
-        <hr/>
+
         <h2>Choose Chain and Storage Type</h2>
         <div>
             chainName:<Select style={{width: '200px'}} options={supportChains}
                               onChange={handleChainNameChnage}
-                              defaultValue={chainName}></Select>
+        ></Select>
         </div>
         <div>
-            storageType:<Select style={{width: '200px'}} options={storageTypeOps}
-                                onChange={handleStorageTypeChnage}
-                                defaultValue={storageType}></Select>
+            {chainName && <div>storageType:<Select style={{width: '200px'}} options={storageTypeOps}
+                                                   onChange={handleStorageTypeChnage} value={storageType}
+                                                   defaultValue={storageType}></Select></div>}
         </div>
         {storageType === "arseeding" && (
             <div>
@@ -300,6 +293,31 @@ function App() {
             everpayBalance && (<div>balance: {everpayBalance}</div>)
         }
 
+        <hr/>
+        <h2>Connect Wallet</h2>
+        {chainName === 'ao' &&
+            <div className="card">
+                <button disabled={cliecked} onClick={connectWallet}>
+                    Connect ArConnect
+                </button>
+                <br/>
+                {address && <a>{address}</a>}
+                <br/>
+                {arweaveBalance && <a>AR:{arweaveBalance}</a>}
+            </div>
+        }
+        {(chainName === 'holesky'||chainName ==='ethereum') &&
+
+            <div className="card2">
+            <button disabled={cliecked} onClick={connectMetamask}>
+                Connect Metamask
+            </button>
+            <br/>
+            {metamaskAddress && <a>{metamaskAddress}</a>}
+            {/*<br/>*/}
+            {/*{arweaveBalance && <a>AR:{arweaveBalance}</a>}*/}
+        </div>
+        }
         <hr/>
         <div style={{
             display: 'flex',
