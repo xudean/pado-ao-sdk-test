@@ -151,11 +151,16 @@ function App() {
         const data = new Uint8Array(fileContent);
         // tag for the data
         let dataTag = {'name': 'test'};
-
+        let symbol = 'ETH';
+        let price = 1_000_000_000_000;
+        if(chainName === 'ao'){
+            symbol = 'wAR';
+            price = 1000000;
+        }
         // price for the data
         let priceInfo = {
-            price: 1_000_000_000_000,
-            symbol: "ETH"
+            price: price,
+            symbol: symbol
         };
 
         //chainName will provided by caller
