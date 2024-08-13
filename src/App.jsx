@@ -43,7 +43,6 @@ function App() {
     const [taskMsg, setTaskMsg] = useState(null)
     const [taskId, setTaskId] = useState(null)
     const tag = "arweave,ethereum-ar-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA,0x4fadc7a98f2dc96510e42dd1a74141eeae0c1543"
-    const [keyInfo, setKeyInfo] = useState();
     const [storageTypeOps, setStorageTypeOps] = useState();
     const supportChains = [
         {value: 'holesky', label: 'holesky'},
@@ -92,13 +91,6 @@ function App() {
     // };
 
     const arweave = Arweave.init(ARConfig)
-
-    useEffect( () => {
-        new Utils().generateKey().then(keyInfo => {
-            setKeyInfo(keyInfo);
-            console.log(`keyInfo:${keyInfo}`)
-        });
-    })
 
     const connectWallet = async () => {
         setCliecked(true)
@@ -174,7 +166,7 @@ function App() {
         //chainName will provided by caller
         const wallets = getWallet()
         debugger
-        const padoNetworkClient = new PadoNetworkContractClient(chainName, storageType, wallets,keyInfo);
+        const padoNetworkClient = new PadoNetworkContractClient(chainName, storageType, wallets);
 
         const dataId = await padoNetworkClient.uploadData(data, dataTag, priceInfo);
 
@@ -227,6 +219,7 @@ function App() {
 
     async function submitTaskAndGetResult() {
         const wallets = getWallet()
+        const keyInfo = await new Utils().generateKey();
         const padoNetworkClient = new PadoNetworkContractClient(chainName, storageType, wallets,keyInfo);
         const taskId = await padoNetworkClient.submitTask(0, userDataId)
         console.log(`taskId:${taskId}`);
