@@ -1,20 +1,21 @@
 import {useCallback, useEffect, useRef, useState} from 'react'
 import './App.css'
-import {generateKey, getResult, submitTask, uploadData} from "@xudean/pado-ao-sdk/";
+import {generateKey, getResult, submitTask, uploadData} from "@xudean/pado-network-sdk";
 import Arweave from "arweave";
 // import {submitDataToAR} from "@xudean/pado-ao-sdk/dist/padoarweave.js";
 // import { genArweaveAPI } from "arseeding-js";
 import {getWalletBalance, logTokenTag, printFee, uploadDataByArseeding} from "./script/arseeding.js";
 import {Input, Select, Spin} from "antd";
-import {PadoNetworkContractClient, StorageType} from '@xudean/pado-ao-sdk'
+import {PadoNetworkContractClient, StorageType, TaskType} from '@xudean/pado-network-sdk'
 
 // import {Everpay} from 'everpay'
 import Everpay from 'everpay'
 import {ethers} from "ethers";
 // import {arseedingBase64ToHexStr, arseedingHexStrToBase64} from "./script/util";
-import {Utils} from "@xudean/pado-ao-sdk";
+import {Utils} from "@xudean/pado-network-sdk";
+import {userKey} from "./config/config";
 
-//import {generateKey, getResult, submitTask} from "../../../padolabs/ao/pado-ao-sdk/src/index";
+//import {generateKey, getResult, submitTask} from "../../../xudean/ao/pado-ao-sdk/src/index";
 
 
 function App() {
@@ -51,6 +52,8 @@ function App() {
             label: 'ethereum'
         }]
     const [everpayBalance, setEverpayBalance] = useState(null)
+    //You should generate a new one keypair for every task
+    const keyInfo  =userKey;
 
     // const base64Data = arseedingHexStrToBase64('0x4f6f55516873635a3231716a783452746166687277624436376b486d37727273594e393850494847375941')
     // console.log('arseedingHexStrToBase64',base64Data)
@@ -153,7 +156,7 @@ function App() {
         let dataTag = {'name': 'test'};
         let symbol = 'ETH';
         let price = 1_000_000_000_000;
-        if(chainName === 'ao'){
+        if (chainName === 'ao') {
             symbol = 'wAR';
             price = 1000000;
         }
@@ -164,11 +167,11 @@ function App() {
         };
 
         //chainName will provided by caller
-        const wallets = getWallet()
+        const wallet = getWallet()
         debugger
-        const padoNetworkClient = new PadoNetworkContractClient(chainName, storageType, wallets);
+        const padoNetworkClient = new PadoNetworkContractClient(chainName, wallet, storageType);
 
-        const dataId = await padoNetworkClient.uploadData(data, dataTag, priceInfo);
+        const dataId = await padoNetworkClient.uploadData(data, dataTag, priceInfo, {t: 4, n: 4});
 
         // upload your data (If you want to do a local test, refer to the README to initialize arweave and then pass it to uploadData)
         console.log(`DATAID=${dataId}`);
@@ -218,13 +221,13 @@ function App() {
 
 
     async function submitTaskAndGetResult() {
-        const wallets = getWallet()
-        const keyInfo = await new Utils().generateKey();
-        const padoNetworkClient = new PadoNetworkContractClient(chainName, storageType, wallets,keyInfo);
-        const taskId = await padoNetworkClient.submitTask(0, userDataId)
+        const wallet = getWallet()
+        const padoNetworkClient = new PadoNetworkContractClient(chainName, wallet, storageType);
+        const taskId = await padoNetworkClient.submitTask(TaskType.DATA_SHARING, userDataId, keyInfo.pk)
+        setTaskMsg(taskId)
+        // const taskId = '0x3a1c133a8504cc9e3462f97c1c9348043c35a6052e7da58a1cef78956c9576ef';
         console.log(`taskId:${taskId}`);
-        debugger
-        const data = await padoNetworkClient.getTaskResult(taskId,200000);
+        const data = await padoNetworkClient.getTaskResult(taskId, keyInfo.sk, 200000);
         console.log(`data:${data}`)
         //for test
         if (data) {
@@ -234,6 +237,25 @@ function App() {
         //
         // }, 10000)
     }
+
+    // async function getTaskResult() {
+    //     const wallet = getWallet();
+    //     const keyInfo = await new Utils().generateKey();
+    //     const padoNetworkClient = new PadoNetworkContractClient(chainName, wallet, storageType);
+    //     const taskId = await padoNetworkClient.submitTask(TaskType.DATA_SHARING, userDataId, keyInfo.pk)
+    //     setTaskMsg(taskId)
+    //     // const taskId = '0x3a1c133a8504cc9e3462f97c1c9348043c35a6052e7da58a1cef78956c9576ef';
+    //     console.log(`taskId:${taskId}`);
+    //     const data = await padoNetworkClient.getTaskResult(taskId, keyInfo.sk, 200000);
+    //     console.log(`data:${data}`)
+    //     //for test
+    //     if (data) {
+    //         downloadArrayBufferAsFile(data, 'raw_data_file')
+    //     }
+    //     // const interval = setInterval(async () => {
+    //     //
+    //     // }, 10000)
+    // }
 
     function downloadArrayBufferAsFile(data, fileName) {
         const blob = new Blob([data], {type: 'application/octet-stream'});
@@ -254,6 +276,11 @@ function App() {
     async function userDataIdChange(value) {
         console.log('dataId:', value)
         setUserDataId(value)
+    }
+
+    async function taskIdChange(value) {
+        console.log('dataId:', value)
+        setTaskId(value)
     }
 
     async function taskIdChange(value) {
@@ -301,17 +328,17 @@ function App() {
                 {arweaveBalance && <a>AR:{arweaveBalance}</a>}
             </div>
         }
-        {(chainName === 'holesky'||chainName ==='ethereum') &&
+        {(chainName === 'holesky' || chainName === 'ethereum') &&
 
             <div className="card2">
-            <button disabled={cliecked} onClick={connectMetamask}>
-                Connect Metamask
-            </button>
-            <br/>
-            {metamaskAddress && <a>{metamaskAddress}</a>}
-            {/*<br/>*/}
-            {/*{arweaveBalance && <a>AR:{arweaveBalance}</a>}*/}
-        </div>
+                <button disabled={cliecked} onClick={connectMetamask}>
+                    Connect Metamask
+                </button>
+                <br/>
+                {metamaskAddress && <a>{metamaskAddress}</a>}
+                {/*<br/>*/}
+                {/*{arweaveBalance && <a>AR:{arweaveBalance}</a>}*/}
+            </div>
         }
         <hr/>
         <div style={{
@@ -335,13 +362,18 @@ function App() {
 
             </div>
             <div className="card">
-                <h2>Submit Task(Data User)</h2>
+                <h2>Submit task and get result(Data User)</h2>
                 <input placeholder={'dataId'} onChange={(e) => userDataIdChange(e.target.value)}/>
                 {taskMsg && <Spin size="small" tip={taskMsg}>{taskMsg}</Spin>}
                 <button onClick={submitTaskAndGetResult}>submitTaskAndGetResult</button>
             </div>
         </div>
         <hr/>
+        {/*<div className="card">*/}
+        {/*    <h2>get task result(Data User)</h2>*/}
+        {/*    <input placeholder={'taskId'} onChange={(e) => userDataIdChange(e.target.value)}/>*/}
+        {/*    <button onClick={submitTaskAndGetResult}>getTaskResult</button>*/}
+        {/*</div>*/}
 
     </>)
 }
